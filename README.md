@@ -83,7 +83,7 @@ Once the services are running, you can access:
 │   ├── main.py                   # FastAPI application entry point and configuration
 │   └── models.py                 # Pydantic data models for request/response validation
 ├── tests/                        
-│   ├── configuration_test.py     
+│   ├── conftest.py     
 │   ├── test_cache.py            
 │   ├── test_database.py         
 │   ├── test_ingest.py           
@@ -122,7 +122,7 @@ pytest
 
 #### Test Files Overview
 
-- `configuration_test.py`: Contains Pytest fixtures, such as `clean_db` to reset the database between tests and `sample_ingest_data` to provide test data.
+- `conftest.py`: Contains Pytest fixtures, such as `clean_db` to reset the database between tests and `sample_ingest_data` to provide test data.
 - `test_database.py`: Validates the database schema, including table creation, indexes, and the TimescaleDB hypertable configuration.
 - `test_ingest.py`: Tests the `/ingest` endpoint, including successful ingestion and error handling for invalid data.
 - `test_query.py`: Tests the `/query` endpoint for both raw data retrieval and various aggregation functions.
