@@ -41,8 +41,8 @@ This project is designed to be run using Docker and Docker Compose, which manage
 ### 1. Clone the Repository
 
 ```bash
-git clone <your-repository-url>
-cd <your-repository-directory>
+git clone https://github.com/MercylinM/timeseries_api_service.git
+cd timeseries_api_service
 ```
 
 ### 2. Start the Services

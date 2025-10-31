@@ -6,6 +6,8 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from typing import Dict, Any
 import dotenv
+from contextlib import asynccontextmanager
+
 dotenv.load_dotenv()
 
 limiter = Limiter(
@@ -14,10 +16,24 @@ limiter = Limiter(
     storage_uri=f"redis://{os.getenv('REDIS_HOST')}:6379"
 )
 
+from database import init_db
+from utils.cache import cache_manager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Initialize database on startup"""
+    init_db()
+    if cache_manager.is_connected():
+        print("Redis cache connected successfully!")
+    else:
+        print("Redis cache NOT connected - running without caching")
+    yield
+
 app = FastAPI(
     title="Super-Simple Timeseries API",
     description="A lightweight time-series data storage and query service",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
 
 
@@ -30,17 +46,6 @@ from routes.query import router as query_router
 from routes.metrics import router as metrics_router
 from routes.cache import router as cache_router
 
-from database import init_db
-from utils.cache import cache_manager
-
-@app.on_event("startup")
-async def startup_event():
-    """Initialize database on startup"""
-    init_db()
-    if cache_manager.is_connected():
-        print("Redis cache connected successfully!")
-    else:
-        print("Redis cache NOT connected - running without caching")
 
 app.include_router(ingest_router)
 app.include_router(query_router)

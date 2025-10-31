@@ -1,5 +1,4 @@
-from http.client import HTTPException
-from fastapi import APIRouter, Request  
+from fastapi import APIRouter, Request, HTTPException
 from typing import List
 from models import MetricInfo
 from database import get_db_connection
@@ -21,6 +20,7 @@ async def list_metrics(request: Request) -> List[MetricInfo]:
       {
         "name": "temperature",
         "first_seen": "2024-01-15T10:30:00Z",
+        "last_seen": "2024-03-01T12:45:00Z",
         "value_type": "number"
       }
     ]
@@ -29,7 +29,7 @@ async def list_metrics(request: Request) -> List[MetricInfo]:
         with get_db_connection() as conn:
             cursor = conn.cursor()
             cursor.execute('''
-                SELECT name, first_seen, value_type 
+                SELECT name, first_seen, last_seen, value_type 
                 FROM metrics 
                 ORDER BY name
             ''')
@@ -39,6 +39,7 @@ async def list_metrics(request: Request) -> List[MetricInfo]:
                 MetricInfo(
                     name=row['name'],
                     first_seen=row['first_seen'],
+                    last_seen=row['last_seen'], 
                     value_type=row['value_type']
                 )
                 for row in results

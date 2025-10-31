@@ -9,7 +9,7 @@ dotenv.load_dotenv()
 DB_HOST = os.getenv("DB_HOST")
 DB_NAME = os.getenv("DB_NAME")
 DB_USER = os.getenv("DB_USER")
-DB_PASS = os.getenv("DB_PASS")
+DB_PASSWORD = os.getenv("DB_PASSWORD")
 
 @contextmanager
 def get_db_connection() -> Generator[psycopg2.extensions.connection, None, None]:
@@ -17,7 +17,7 @@ def get_db_connection() -> Generator[psycopg2.extensions.connection, None, None]
         host=DB_HOST,
         database=DB_NAME,
         user=DB_USER,
-        password=DB_PASS
+        password=DB_PASSWORD
     )
 
     conn.cursor_factory = psycopg2.extras.RealDictCursor
@@ -39,6 +39,7 @@ def init_db():
                 id SERIAL PRIMARY KEY,
                 name VARCHAR(255) NOT NULL UNIQUE,
                 first_seen TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                last_seen TIMESTAMPTZ NOT NULL DEFAULT NOW(),
                 value_type VARCHAR(20) NOT NULL CHECK (value_type IN ('number', 'string'))
             )
         ''')

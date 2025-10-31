@@ -28,6 +28,7 @@ class QueryRequest(BaseModel):
 class MetricInfo(BaseModel):
     name: str
     first_seen: datetime
+    last_seen: datetime
     value_type: str
 
 class QueryResponse(BaseModel):

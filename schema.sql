@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS metrics (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) UNIQUE NOT NULL,
     first_seen TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    last_seen TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     value_type VARCHAR(20) NOT NULL CHECK (
         value_type IN ('number', 'string')
     )

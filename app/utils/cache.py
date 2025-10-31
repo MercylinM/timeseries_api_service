@@ -24,7 +24,7 @@ class CacheManager:
                 password=os.getenv('REDIS_PASSWORD', None),
                 socket_connect_timeout=5, 
                 socket_timeout=5,        
-                retry_on_timeout=True,
+                # retry_on_timeout=True,
                 decode_responses=True    
             )
             

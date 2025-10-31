@@ -44,6 +44,7 @@ def test_list_metrics_with_data(test_client):
     for metric in data:
         assert "name" in metric
         assert "first_seen" in metric
+        assert "last_seen" in metric
         assert "value_type" in metric
         assert metric["value_type"] in ["number", "string"]
 

@@ -3,7 +3,7 @@ import requests
 from datetime import datetime, timedelta
 import statistics
 
-def analyze_iot_data(base_url="http://localhost:8000"):
+def analyze_iot_data(base_url):
     """
     Perform specialized analysis on the IoT sensor data
     """
@@ -60,7 +60,7 @@ def analyze_iot_data(base_url="http://localhost:8000"):
                 if data:
                     values = [point['value'] for point in data if point['value'] is not None]
                     if values:
-                        print(f"      Statistics:")
+                        print(f"    Statistics:")
                         print(f"      Data points: {len(values)}")
                         print(f"      Average: {statistics.mean(values):.4f}")
                         print(f"      Min: {min(values):.4f}")
@@ -72,7 +72,7 @@ def analyze_iot_data(base_url="http://localhost:8000"):
                             std_val = statistics.stdev(values)
                             anomalies = [v for v in values if abs(v - mean_val) > 2 * std_val]
                             if anomalies:
-                                print(f"  Anomalies: {len(anomalies)} values outside 2σ")
+                                print(f"  Anomalies: {len(anomalies)} values outside 2 standard deviations from mean")
     
     boolean_metrics = ['light_status', 'motion_detected']
     

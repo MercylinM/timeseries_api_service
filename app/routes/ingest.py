@@ -41,19 +41,15 @@ async def ingest_data(request: Request, ingest_request: IngestRequest) -> Dict[s
             
             try:
                 cursor.execute('''
-                    INSERT INTO metrics (name, value_type) 
-                    VALUES (%s, %s)
-                    ON CONFLICT (name) DO NOTHING
-                ''', (point.metric, value_type))
+                    INSERT INTO metrics (name, value_type, last_seen) 
+                    VALUES (%s, %s, %s)
+                    ON CONFLICT (name) DO UPDATE SET
+                        value_type = EXCLUDED.value_type,
+                        last_seen = GREATEST(metrics.last_seen, EXCLUDED.last_seen)
+                    RETURNING id;
+                ''', (point.metric, value_type, point.time))
                 
-                cursor.execute('SELECT id FROM metrics WHERE name = %s', (point.metric,))
-                result = cursor.fetchone()
-                metric_id = result['id'] if result else None
-                
-                if not metric_id:
-                    cursor.execute('SELECT id FROM metrics WHERE name = %s', (point.metric,))
-                    result = cursor.fetchone()
-                    metric_id = result['id']
+                metric_id = cursor.fetchone()['id']
                 
                 if value_type == 'number':
                     cursor.execute('''
@@ -69,6 +65,8 @@ async def ingest_data(request: Request, ingest_request: IngestRequest) -> Dict[s
                 inserted_count += 1
                 
             except psycopg2.Error as e:
+                print(f"Database error: {e}")
+                conn.rollback() # Rollback the transaction on error
                 raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
         
         conn.commit()

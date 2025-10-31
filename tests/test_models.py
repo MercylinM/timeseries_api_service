@@ -58,6 +58,7 @@ def test_metric_info_model():
     metric = MetricInfo(
         name="test_metric",
         first_seen=datetime.now(),
+        last_seen=datetime.now(),
         value_type="number"
     )
     assert metric.name == "test_metric"

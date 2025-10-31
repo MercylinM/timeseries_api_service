@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'app'))
 
 from main import app
-from database import get_db_connection
+from database import get_db_connection, init_db
 
 @pytest.fixture(scope="session")
 def test_client():
@@ -20,11 +20,10 @@ def clean_db():
     """
     with get_db_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute("DELETE FROM time_series_data")
-        cursor.execute("DELETE FROM metrics")
-        cursor.execute("ALTER SEQUENCE metrics_id_seq RESTART WITH 1")
-        
+        cursor.execute("DROP TABLE IF EXISTS time_series_data")
+        cursor.execute("DROP TABLE IF EXISTS metrics")
         conn.commit()
+    init_db()
     yield
 
 @pytest.fixture(scope="function")

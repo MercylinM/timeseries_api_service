@@ -7,6 +7,13 @@ from main import limiter
 
 router = APIRouter(prefix="/query", tags=["query"])
 
+ALLOWED_INTERVALS = {
+    '1 second', '5 seconds', '10 seconds', '30 seconds',
+    '1 minute', '5 minutes', '10 minutes', '30 minutes',
+    '1 hour', '2 hours', '6 hours', '12 hours',
+    '1 day', '7 days', '1 month'
+}
+
 @router.post("", response_model=List[QueryResponse])
 @limiter.limit("200/minute") 
 async def query_data(request: Request, query_request: QueryRequest) -> List[QueryResponse]: 
@@ -38,6 +45,12 @@ async def query_data(request: Request, query_request: QueryRequest) -> List[Quer
             value_type = metric_result['value_type']
             
             if query_request.aggregation and query_request.interval:
+                if query_request.interval not in ALLOWED_INTERVALS:
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"Invalid interval. Allowed intervals: {sorted(list(ALLOWED_INTERVALS))}"
+                    )
+
                 if value_type == 'string':
                     raise HTTPException(
                         status_code=400, 
@@ -45,7 +58,7 @@ async def query_data(request: Request, query_request: QueryRequest) -> List[Quer
                     )
                 
                 aggregation_query = get_aggregation_query(query_request.aggregation, query_request.interval)
-                cursor.execute(aggregation_query, (query_request.interval, metric_id, query_request.start_time, query_request.end_time))
+                cursor.execute(aggregation_query, (metric_id, query_request.start_time, query_request.end_time))
                 
             else:
                 cursor.execute('''
@@ -78,50 +91,31 @@ async def query_data(request: Request, query_request: QueryRequest) -> List[Quer
 
 def get_aggregation_query(aggregation: AggregationFunction, interval: str) -> str:
     """Generate SQL query for different aggregation types using TimescaleDB's time_bucket function"""
+    
+    # f-string is safe here because interval is validated against a whitelist
+    base_query = f'''
+        SELECT 
+            time_bucket('{interval}', time) as bucket,
+            {{agg_function}}(value) as value
+        FROM time_series_data
+        WHERE metric_id = %s AND time BETWEEN %s AND %s
+        GROUP BY bucket
+        ORDER BY bucket
+    '''
+
     if aggregation == AggregationFunction.AVG:
-        return '''
-            SELECT 
-                time_bucket(%s, time) as bucket,
-                AVG(value) as value
-            FROM time_series_data
-            WHERE metric_id = %s AND time BETWEEN %s AND %s
-            GROUP BY bucket
-            ORDER BY bucket
-        '''
+        return base_query.format(agg_function='AVG')
     elif aggregation == AggregationFunction.SUM:
-        return '''
-            SELECT 
-                time_bucket(%s, time) as bucket,
-                SUM(value) as value
-            FROM time_series_data
-            WHERE metric_id = %s AND time BETWEEN %s AND %s
-            GROUP BY bucket
-            ORDER BY bucket
-        '''
+        return base_query.format(agg_function='SUM')
     elif aggregation == AggregationFunction.MIN:
-        return '''
-            SELECT 
-                time_bucket(%s, time) as bucket,
-                MIN(value) as value
-            FROM time_series_data
-            WHERE metric_id = %s AND time BETWEEN %s AND %s
-            GROUP BY bucket
-            ORDER BY bucket
-        '''
+        return base_query.format(agg_function='MIN')
     elif aggregation == AggregationFunction.MAX:
-        return '''
-            SELECT 
-                time_bucket(%s, time) as bucket,
-                MAX(value) as value
-            FROM time_series_data
-            WHERE metric_id = %s AND time BETWEEN %s AND %s
-            GROUP BY bucket
-            ORDER BY bucket
-        '''
+        return base_query.format(agg_function='MAX')
     elif aggregation == AggregationFunction.COUNT:
-        return '''
+        # COUNT uses COUNT(*) instead of COUNT(value)
+        return f'''
             SELECT 
-                time_bucket(%s, time) as bucket,
+                time_bucket('{interval}', time) as bucket,
                 COUNT(*) as value
             FROM time_series_data
             WHERE metric_id = %s AND time BETWEEN %s AND %s
