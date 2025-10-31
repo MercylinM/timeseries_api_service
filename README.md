@@ -164,7 +164,7 @@ pip install -r requirements.txt
     - **Usage**:
 
         ```bash
-        python scripts/load_data.py
+        python scripts/load_data.py --max-rows 10000 --batch-size 500
         ```
 
 3. **`analyze_data.py`**
@@ -220,7 +220,7 @@ For local development, you can run the app without Docker Compose, but you must 
 5. **Run the Application**:
 
     ```bash
-    uvicorn app.main:app --reload
+    uvicorn main:app --reload
     ```
 
 ## License
