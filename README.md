@@ -206,7 +206,7 @@ For local development, you can run the app without Docker Compose, but you must 
     export DB_PORT="5432"
     export DB_NAME="database_name"
     export DB_USER="user_name"
-    export DB_PASS="password"
+    export DB_PASSWORD="password"
     export REDIS_HOST="localhost"
     export REDIS_PORT="6379"
     ```

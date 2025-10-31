@@ -66,7 +66,7 @@ async def ingest_data(request: Request, ingest_request: IngestRequest) -> Dict[s
                 
             except psycopg2.Error as e:
                 print(f"Database error: {e}")
-                conn.rollback() # Rollback the transaction on error
+                conn.rollback()
                 raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
         
         conn.commit()

@@ -92,7 +92,6 @@ async def query_data(request: Request, query_request: QueryRequest) -> List[Quer
 def get_aggregation_query(aggregation: AggregationFunction, interval: str) -> str:
     """Generate SQL query for different aggregation types using TimescaleDB's time_bucket function"""
     
-    # f-string is safe here because interval is validated against a whitelist
     base_query = f'''
         SELECT 
             time_bucket('{interval}', time) as bucket,
@@ -112,7 +111,6 @@ def get_aggregation_query(aggregation: AggregationFunction, interval: str) -> st
     elif aggregation == AggregationFunction.MAX:
         return base_query.format(agg_function='MAX')
     elif aggregation == AggregationFunction.COUNT:
-        # COUNT uses COUNT(*) instead of COUNT(value)
         return f'''
             SELECT 
                 time_bucket('{interval}', time) as bucket,
